@@ -16,6 +16,8 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 public class Game implements ApplicationListener {
+	public static Texture DynamicPixelTexture;
+
 	private OrthographicCamera camera;
 	private SpriteBatch batch;
 	private Pixmap pixmap;
@@ -23,11 +25,16 @@ public class Game implements ApplicationListener {
 	private int width;
 	private int height;
 	
-	private float currentTime = 0;
-	private float elapsedTime = 0;
-	private float lastTime = 0;
-	private float leftOverTime = 0;
-	private int timesteps = 0;
+	// FIXED UPDATE LOOP VARIABLES
+	private final float TIMESTEP = 1.0f / 120.0f;
+	private final float FRAMERATE = 1.0f / 60.0f;
+	private double updateAccumulator = 0.0f;
+	private double renderAccumulator = 0.0f;
+	private long oldTime = System.nanoTime();
+	private long currentTime = System.nanoTime();
+	private double delta = 0.0f;
+	
+	private DynamicPixel pixel;
 	
 	@Override
 	public void create() {		
@@ -42,9 +49,13 @@ public class Game implements ApplicationListener {
 		camera.setToOrtho(false);
 		batch = new SpriteBatch();
 		
+		DynamicPixelTexture = new Texture(Gdx.files.internal("textures/dynamicPixel.png"));
+		
 		pixmap = new Pixmap(Gdx.files.internal("textures/pixmap/pixmapTest.png"));
 		
 		pixmapTexture = new Texture(pixmap, Format.RGBA8888, false);
+		
+		pixel = new DynamicPixel(0, 50, Color.YELLOW, 40, 20);
 	}
 
 	@Override
@@ -56,35 +67,40 @@ public class Game implements ApplicationListener {
 
 	@Override
 	public void render() {	
-		update();
 		Gdx.gl.glClearColor(0, 0.8F, 1, 1);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		
 		batch.setProjectionMatrix(camera.combined);
 		
-		batch.begin();
-		batch.draw(pixmapTexture, 0, 0, width, height);
-		batch.end();
+		oldTime = currentTime;
+		currentTime = System.nanoTime();
+		
+		// provides delta in seconds with nanosecond accuracy
+		// e.g. 0.003 is 0 seconds and 3 milliseconds
+		delta = (double)(currentTime - oldTime) * 0.000000001f;
+		
+		updateAccumulator += delta;
+		if (delta < 0.1) {
+			while (updateAccumulator > TIMESTEP) {
+				// update
+	
+				update(delta);
+	
+				updateAccumulator -= TIMESTEP;
+			}
+			
+			renderAccumulator += delta;
+			if (renderAccumulator > FRAMERATE) {
+				batch.begin();
+				batch.draw(pixmapTexture, 0, 0, width, height);
+				pixel.Draw(batch);
+				batch.end();
+			}
+		}
 	}
 	
-	public void update() {
-		elapsedTime = lastTime - currentTime;
-		currentTime = System.nanoTime();
-		lastTime = currentTime; // reset lastTime
-		
-		// add time that couldn't be used last frame
-		elapsedTime += leftOverTime;
-		
-		// divide it up in chunks of 16ms
-		timesteps = (int)Math.floor(elapsedTime / 16);
-		
-		// store time we couldn't use for next frame
-		leftOverTime = elapsedTime - timesteps;
-		
-		for (int i = 0; i < timesteps; i++) {
-			// update things here
-			
-		}
+	public void update(double delta) {
+		pixel.Update(delta);
 	}
 
 	@Override
