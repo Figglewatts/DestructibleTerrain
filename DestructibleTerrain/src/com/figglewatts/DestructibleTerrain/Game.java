@@ -23,13 +23,11 @@ public class Game implements ApplicationListener {
 	private int width;
 	private int height;
 	
-	private int circleRadius = 2;
-	
-	private Texture mapImage;
-	
 	@Override
 	public void create() {		
 		Texture.setEnforcePotImages(false); // don't enforce width/height powers of two
+		
+		GlobalSettings.DRAW_CALCULATED_NORMALS = true;
 	
 		float w = Gdx.graphics.getWidth();
 		float h = Gdx.graphics.getHeight();
@@ -42,19 +40,13 @@ public class Game implements ApplicationListener {
 		
 		pixmap = new Pixmap(Gdx.files.internal("textures/pixmap/pixmapTest.png"));
 		
-		/*pixmap = new Pixmap(width, height, Format.RGBA8888);
-		pixmap.setColor(Color.BLUE);
-		pixmap.fillRectangle(0, 0, width, height);
-		pixmap.setColor(Color.RED);
-		pixmap.fillCircle(width/2, height/2, circleRadius);*/
 		pixmapTexture = new Texture(pixmap, Format.RGBA8888, false);
-		//System.out.println(findNormal(260, 162).getNormal().toString());
-		drawNormal(findNormal(255, 159));
-		drawNormal(findNormal(338, 170));
-		drawNormal(findNormal(320, 170));
-		drawNormal(findNormal(300, 173));
-		drawNormal(findNormal(275, 170));
-		drawNormal(findNormal(235, 154));
+		findNormal(255, 159);
+		findNormal(338, 170);
+		findNormal(320, 170);
+		findNormal(300, 173);
+		findNormal(275, 170);
+		findNormal(235, 154);
 	}
 
 	@Override
@@ -66,7 +58,6 @@ public class Game implements ApplicationListener {
 
 	@Override
 	public void render() {	
-		//updatePixmap();
 		Gdx.gl.glClearColor(0, 0.8F, 1, 1);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		
@@ -90,13 +81,6 @@ public class Game implements ApplicationListener {
 	@Override
 	public void resume() {
 	
-	}
-	
-	private void updatePixmap() {
-		circleRadius++;
-		pixmap.setColor(Color.RED);
-		pixmap.fillCircle(width/2, height/2, circleRadius);
-		pixmapToTexture();
 	}
 	
 	private void pixmapToTexture() {
@@ -135,15 +119,16 @@ public class Game implements ApplicationListener {
 				}
 			}
 		}
-		System.out.println(average);
 		Vector2 normal = average.nor();
 		normal.mul(20F);
 		SurfaceNormal surfaceNormal = new SurfaceNormal(xPos, yPos, normal);
+		if (GlobalSettings.DRAW_CALCULATED_NORMALS) {
+			drawNormal(surfaceNormal);
+		}
 		return surfaceNormal;
 	}
 	
 	private void drawNormal(SurfaceNormal surfaceNormal) {
-		//Vector2 scaledNormalPosition = surfaceNormal.getNormalPosition().mul(1F);
 		pixmap.setColor(Color.BLACK);
 		pixmap.drawLine((int)surfaceNormal.getPosition().x, (int)surfaceNormal.getPosition().y,
 						(int)surfaceNormal.getNormalPosition().x, (int)surfaceNormal.getNormalPosition().y);
