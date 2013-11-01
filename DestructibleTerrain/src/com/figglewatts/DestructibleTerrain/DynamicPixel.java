@@ -2,6 +2,7 @@ package com.figglewatts.DestructibleTerrain;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
 public class DynamicPixel {
@@ -49,8 +50,15 @@ public class DynamicPixel {
 		this.bounciness = bounciness;
 	}
 	
-	public void Update(float delta) {
-		this.position = this.position.add(this.velocity.mul(delta));
+	public void Update(double delta) {
+		this.position.x = (float)(this.position.x + (this.velocity.x * delta));
+		this.position.y = (float)(this.position.y + (this.velocity.y * delta));
+	}
+	public void Draw(SpriteBatch batch) {
+		Color oldColor = batch.getColor();
+		batch.setColor(this.color);
+		batch.draw(Game.DynamicPixelTexture, this.position.x, this.position.y);
+		batch.setColor(oldColor);
 	}
 	
 	public DynamicPixel(int x, int y) {
