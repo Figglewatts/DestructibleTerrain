@@ -1,4 +1,4 @@
-DestructableTerrain
+DestructibleTerrain
 ===================
 
-An attempt to make destructable terrain (much like in the Worms games) with LibGDX.
+An attempt to make destructible terrain (much like in the Worms games) with LibGDX.
